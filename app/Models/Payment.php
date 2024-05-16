@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\DB;
 
 class Payment extends Authenticatable implements FilamentUser
 {
@@ -20,7 +21,6 @@ class Payment extends Authenticatable implements FilamentUser
      * @var array<int, string>
      */
     protected $fillable = [
-        '',
         'envelope_code',
         'file_code',
         'payment_code',
@@ -53,6 +53,15 @@ class Payment extends Authenticatable implements FilamentUser
     public function getPaymentTypeTypeAttribute()
     {
         return $this->paymentType()->type ?? null; // Assuming 'type' is the attribute you want from the related model
+    }
+
+    public function getFolderPayments()
+    {
+        return DB::table('payments')
+        ->join('beneficiaries', 'payments.beneficiary_id', '=', 'beneficiaries.id')
+        ->where('payments.envelope_code', $this->envelope_code)
+        ->select('payments.*', 'beneficiary as beneficiary_name')
+        ->get();
     }
 
 }

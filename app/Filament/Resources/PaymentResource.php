@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
+use Illuminate\Contracts\View\View;
+use Filament\Tables\Filters\Filter;
 
 class PaymentResource extends Resource
 {
@@ -33,8 +35,7 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Εντάλματα';
-
-
+   
     public static function form(Form $form): Form
     {
         return $form
@@ -109,6 +110,7 @@ class PaymentResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $envelopeFolders = Payment::select('envelope_folder')->distinct()->pluck('envelope_folder')->toArray();
         return $table
             ->recordClasses(fn (Model $record) => match ($record->has_relatives) {
                 0 => 'border-s-2 border-orange-600 dark:border-orange-300',
@@ -117,9 +119,9 @@ class PaymentResource extends Resource
             })
             ->striped()
             ->columns([
+                TextColumn::make('year')->label('Έτος'),
                 TextColumn::make('envelope_code')->label('Φάκελος')->searchable(),
                 TextColumn::make('payment_code')->label('Κωδικός')->searchable(),
-                TextColumn::make('year')->label('Έτος'),
                 TextColumn::make('paymentType.type')->label('Τύπος')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -151,20 +153,34 @@ class PaymentResource extends Resource
                     ->preload(),
             ], layout: FiltersLayout::AboveContent)
             ->actions([
-                ViewAction::make()->label('')->iconSize('lg'),
+                ViewAction::make()->label('Λεπτομέρειες')->iconSize('lg'),
                 \Filament\Tables\Actions\Action::make('download_payment_pdf')
-                    ->label('')
+                    ->label('Λήψη')
                     ->url(function ($record) {
                         return self::goTo($record->envelope_folder, $record->filename, $record->filename, 'Λήψη αρχείου');
                     })
                     ->icon('heroicon-o-document-arrow-down')
                     ->iconSize('lg')
                     ->openUrlInNewTab(),
-                \Filament\Tables\Actions\Action::make('list_files')
-                    ->label('')
-					->url(fn (Payment $record) => route('filament.admin.resources.payments.list-folder-files', ['folderName' => $record->envelope_folder]))
-					->icon('heroicon-o-folder-open')
-                    ->iconSize('lg'),	
+                \Filament\Tables\Actions\Action::make('list_folder_files')
+                    ->label('Περιεχόμενα')
+                    ->modalHeading(function ($record){
+                        return 'Φάκελος '. $record->envelope_folder;
+                    })
+                    ->modalDescription(function ($record){
+                        return  'Βρέθηκαν ' . $paymentCount = $record->getFolderPayments()->count() . 
+                                ' εντάλματα στο φάκελο ' . $record->envelope_code . 
+                                ' για το έτος ' . $record->year;
+                    })
+                    ->modalContent(function (Payment $record): View {
+                        $payments = $record->getFolderPayments();
+                        
+                        return view('filament.resources.payment-resource.pages.list-folder-files', ['payments' => $payments]);
+                    })
+                    ->modalButton('Κλείσε το παράθυρο')
+                    ->modalCancelAction(false)
+                    ->icon('heroicon-o-folder-open')
+                    ->iconSize('lg'),    	
             ])
             ->bulkActions([
                 BulkAction::make('downloadPdfs')
@@ -201,7 +217,6 @@ class PaymentResource extends Resource
             'create' => Pages\CreatePayment::route('/create'),
             'view' => Pages\ViewPayment::route('/{record}'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
-			'list-folder-files' => Pages\ListFolderFiles::route('/{folderName}/files'),
         ];
     }
 

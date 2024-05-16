@@ -1,16 +1,44 @@
-<x-filament::page>
-    <x-slot name="header">
-        <h2 class="text-2xl font-bold leading-tight">Files in {{ $this->getTitle() }}</h2>
-    </x-slot>
+<!-- resources/views/filament/resources/payment-resource/pages/list-folder-files.blade.php -->
 
-    <div class="p-4 bg-white shadow rounded-lg">
-            @csrf
-            <ul class="list-none p-0">
-                @foreach ($this->getFiles() as $file)
-                    <li class="mb-2 flex items-center">
-                        <span>{{ $loop->index + 1 }}. {{ $file }}</span>
-                    </li>
+<div>
+    <hr>
+    <br>
+    @csrf
+    <div>
+        <table class="table-auto w-full">
+            <tbody>
+                @foreach ($payments as $payment)
+                    <tr>
+                        <!-- Payment Code and Description -->
+                        <td class="align-top medium-font"><b>{{ $payment->payment_code }}</b></td>
+                        <td class="align-top pr-2 medium-font">{{ $payment->beneficiary_name }}</td>
+                    </tr>
+                    <tr>
+                        <!-- Beneficiary aligned with Description -->
+                        <td></td>
+                        <td class="align-top pr-2 small-font bottom-border {">{{ $payment->description }}</td>
+                    </tr>
                 @endforeach
-            </ul>
+            </tbody>
+        </table>
     </div>
-</x-filament::page>
+    <hr>
+</div>
+
+
+<style>
+    .pr-2 {
+        padding-right: 2rem; /* Adjust the value as needed */
+    }
+    .small-font {
+        font-size: 0.675rem; /* Adjust the value as needed */
+        color: #4B5563;
+    }
+    .medium-font {
+        font-size: 0.775rem; /* Adjust the value as needed */
+        color: black;
+    }
+        .bottom-border {
+        border-bottom: 1px solid #e5e7eb; /* Adjust the color as needed */
+    }
+</style>
