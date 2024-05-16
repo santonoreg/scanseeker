@@ -27,6 +27,8 @@ class ListPayments extends ListRecords
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('year', 2013)),
             '2014' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('year', 2014)),
+			'2015' => Tab::make()
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('year', 2015)),	
         ];
     }
     protected function getHeaderActions(): array

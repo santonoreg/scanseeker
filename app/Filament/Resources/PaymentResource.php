@@ -103,9 +103,6 @@ class PaymentResource extends Resource
                                     }
                                     return response()->download($zipFilePath)->deleteFileAfterSend(true);
                                 }),
-
-
-
                         ]),
             ])->columns(3);
     }
@@ -163,6 +160,11 @@ class PaymentResource extends Resource
                     ->icon('heroicon-o-document-arrow-down')
                     ->iconSize('lg')
                     ->openUrlInNewTab(),
+                \Filament\Tables\Actions\Action::make('list_files')
+                    ->label('')
+					->url(fn (Payment $record) => route('filament.admin.resources.payments.list-folder-files', ['folderName' => $record->envelope_folder]))
+					->icon('heroicon-o-folder-open')
+                    ->iconSize('lg'),	
             ])
             ->bulkActions([
                 BulkAction::make('downloadPdfs')
@@ -199,6 +201,7 @@ class PaymentResource extends Resource
             'create' => Pages\CreatePayment::route('/create'),
             'view' => Pages\ViewPayment::route('/{record}'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
+			'list-folder-files' => Pages\ListFolderFiles::route('/{folderName}/files'),
         ];
     }
 
